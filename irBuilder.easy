@@ -1,0 +1,147 @@
+IRBuilder: [{
+    basicBlock:;
+
+    #Memory control ops
+    allocOne: [1 32 IntegerType Constant AcllocateStack basicBlock.instructions.pushBack] func;
+    allocStack: [AcllocateStack basicBlock.instructions.pushBack] func;
+
+    allocOneAligned: [align:; 1 32 IntegerType Constant AcllocateStack dup align swap .!align basicBlock.instructions.pushBack] func;
+    allocStackAligned: [align:; AcllocateStack align swap .!align basicBlock.instructions.pushBack] func;
+
+    addLoad: [Load basicBlock.instructions.pushBack] func;
+    addLoadAligned: [align:; Load dup align swap .!align basicBlock.instructions.pushBack] func;
+
+    addStore: [Store basicBlock.instructions.pushBack] func;
+    addStoreAligned: [align:; Store dup align swap .!align basicBlock.instructions.pushBack] func;
+
+    addGEP: [GetElementPointer basicBlock.instructions.pushBack] func;
+
+    addPhiNode: [PhiNode basicBlock.instructions.pushBack] func;
+
+    #Terminators
+    addRet: [Return basicBlock.!terminator] func;
+
+    addBrUncond: [BranchUncond basicBlock.!terminator] func;
+
+    addBrCond: [BranchCond basicBlock.!terminator] func;
+
+    addSwitch: [Switch basicBlock.!terminator];
+
+    addInderectBr: [IndirectBranch basicBlock.!terminator] func;
+
+    addInvoke: [Invoke basicBlock.!terminator] func;
+
+    addUnwind: [Unwind basicBlock.!terminator] func;
+
+    addUnreachable: [Unreachable basicBlock.!terminator] func;
+
+    #Binary ops
+    addAdd: ["add" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addFadd: ["fadd" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addSub: ["sub" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addFsub: ["fsub" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addMul: ["mul" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addFmul: ["fmul" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addSdiv: ["sdiv" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addUdiv: ["udiv" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addFdiv: ["fdiv" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addSrem: ["srem" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addUrem: ["urem" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addFrem: ["frem" basicBlock.instructions.pushBack] func;
+
+    addFpow: ["pow" BinaryBuiltin basicBlock.instructions.pushBack] func;
+
+    #Unary ops
+    addFsin: ["sin" UnaryBuiltin basicBlock.instructions.pushBack] func;
+
+    addFcos: ["cos" UnaryBuiltin basicBlock.instructions.pushBack] func;
+
+    addFsqrt: ["sqrt" UnaryBuiltin basicBlock.instructions.pushBack] func;
+
+    addFceil: ["ceil" UnaryBuiltin basicBlock.instructions.pushBack] func;
+
+    addFfloor: ["floor" UnaryBuiltin basicBlock.instructions.pushBack] func;
+
+    addFlog: ["log" UnaryBuiltin basicBlock.instructions.pushBack] func;
+
+    addFlog10: ["log10" UnaryBuiltin basicBlock.instructions.pushBack] func;
+
+    #Binary bitwise ops
+    addShl: ["shl" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addLshr: ["lshr" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addAshr: ["ashr" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addAnd: ["and" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addOr: ["or" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    addXor: ["xor" BinaryOperation basicBlock.instructions.pushBack] func;
+
+    #Conversion ops
+    addTrunc: ["trunc" ConversionOperation basicBlock.instructions.pushBack] func;
+    addTrunc: [val:type:;; val.type "INTEGER" has type "INTEGER" has and type.size  val.type.size < and ~] [InvalidType] pfunc;
+
+    addZext: ["zext" ConversionOperation basicBlock.instructions.pushBack] func;
+    addZext: [val:type:;; val.type "INTEGER" has type "INTEGER" has and type.size  val.type.size > and ~] [InvalidType] pfunc;
+
+    addSext: ["sext" ConversionOperation basicBlock.instructions.pushBack] func;
+    addSext: [val:type:;; val.type "INTEGER" has type "INTEGER" has and type.size  val.type.size > and ~] [InvalidType] pfunc;
+
+    addFptrunc: ["fptrunc" ConversionOperation basicBlock.instructions.pushBack] func;
+    addFptrunc: [val:type:;; val.type "FLOAT" has type "FLOAT" has and type.size  val.type.size < and ~] [InvalidType] pfunc;
+
+    addFpext: ["fpext" ConversionOperation basicBlock.instructions.pushBack] func;
+    addFpext: [val:type:;; val.type "FLOAT" has type "FLOAT" has and type.size  val.type.size > and ~] [InvalidType] pfunc;
+
+    addFptoui: ["fptoui" ConversionOperation basicBlock.instructions.pushBack] func;
+    addFptoui: [val:type:;; val.type "FLOAT" has type "INTEGER" has ~] [InvalidType] pfunc;
+
+    addFptosi: ["fptosi" ConversionOperation basicBlock.instructions.pushBack] func;
+    addFptosi: [val:type:;; val.type "FLOAT" has type "INTEGER" has ~] [InvalidType] pfunc;
+
+    addUitofp: ["uitofp" ConversionOperation basicBlock.instructions.pushBack] func;
+    addUitofp: [val:type:;; val.type "INTEGER" has type "FLOAT" has ~] [InvalidType] pfunc;
+
+    addSitofp: ["sitofp" ConversionOperation basicBlock.instructions.pushBack] func;
+    addSitofp: [val:type:;;  val.type "INTEGER" has type "FLOAT" has ~] [InvalidType] pfunc;
+
+    addPtrtoint: ["ptrtoint" ConversionOperation basicBlock.instructions.pushBack] func;
+    addPtrtoint: [val:type:;; val.type "POINTER" has type "INTEGER" has ~] [InvalidType] pfunc;
+
+    addInttoptr: ["inttoptr" ConversionOperation basicBlock.instructions.pushBack] func;
+    addInttoptr: [val:type:;; val.type "INTEGER" has type "POINTER" has ~] [InvalidType] pfunc;
+
+    addBitcast: ["bitcast" ConversionOperation basicBlock.instructions.pushBack] func;
+
+    #aggregate
+    addExtractValue: [ExtractValue basicBlock.instructions.pushBack] func;
+    addExtractValue: [fieldCount 1 <] [InvalidIndicies] pfunc;
+
+    addInsertValue: [InsertValue basicBlock.instructions.pushBack] func;
+
+    #other
+    addCall: [ReturningCall basicBlock.instructions.pushBack] func;
+    addCall: [drop .retType VoidType =] [VoidCall basicBlock.instructions.pushBack] pfunc;
+    addCall: [drop .type "POINTER" has] [function:args:;; function.type.type "FUNCTION" has ~ [NonFunctionCall] when 
+               function args PointerCall basicBlock.instructions.pushBack] pfunc;
+
+    addICmp: [IntegerCompare basicBlock.instructions.pushBack] func;
+
+    addFCmp: [FloatCompare basicBlock.instructions.pushBack] func;
+
+    addSelect: [Select basicBlock.instructions.pushBack] func;
+  }
+] func;

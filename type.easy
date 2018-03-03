@@ -1,0 +1,101 @@
+VoidType: {
+  getIR: "void";
+};
+
+UndefType: {
+  getIR: "undef";
+};
+
+VarargType: {
+  getIR: "...";
+};
+
+IntegerType: [
+  {
+    INTEGER: {};
+    size:;
+    getIR: ["i" size toText &] func;
+  }
+] func;
+
+FloatType: [
+  FloatType': [UnsupportedSizeError] func;
+  FloatType': [16 =] [drop "half"] pfunc;
+  FloatType': [32 =] [drop "float"] pfunc;
+  FloatType': [64 =] [drop "double"] pfunc;
+  FloatType': [128 =] [drop "fp128"] pfunc;
+
+  {
+    FLOAT: {};
+    size:;
+    getIR: size FloatType';
+  }
+] func;
+
+ArrayType: [
+  {
+    ARRAY: {};
+    size:;
+    type:;
+
+    getIR: ["[" size toText " x " type.getIR "]" & & & &] func;
+
+  }
+] func;
+
+StructType: [
+  {
+    STRUCT: {};
+    typeList:;
+
+    getIR: ["{ " typeList [.getIR] getListIR " }" & &] func;
+  }
+] func;
+
+PackedStructType: [
+  {
+    STRUCT: {};
+    typeList:;
+
+    getIR: ["<{ " typeList [.getIR] getListIR " }>" & &] func;
+  }
+] func;
+
+FunctionType: [
+  {
+    FUNCTION: {};
+    retType:inputTypes:;;
+
+    getIR: [retType.getIR " (" inputTypes [.getIR] getListIR ")" & & &] func;
+  }
+] func;
+
+PointerType: [
+  {
+    POINTER: {};
+    type:;
+
+    getIR: [type.getIR "*" &] func;
+  }
+] func;
+
+AliasType: [
+  {
+    ALIAS: {};
+    name:type:;;
+
+    getIR: ["%" name &] func;
+    getDefIR: ["%" name " = type " & & type.getIR LF & &] func;
+  }
+] func;
+
+OpaqueType: [
+  {
+    name:;
+
+    getIR: ["%" name &] func;
+    getDefIR: ["%" name " = opaque" LF & & &] func;
+  }
+] func;
+
+=: [left:right:;; left.getIR right.getIR =] [drop drop TRUE] pfunc;

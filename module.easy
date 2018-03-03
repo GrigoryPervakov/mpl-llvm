@@ -1,0 +1,138 @@
+"sl/control" useFile
+"sl/hashTable" useFile
+"sl/linkedList" useFile
+
+"type" useFile
+"utils" useFile
+"dataLayout" useFile
+"value" useFile
+"function" useFile
+"irBuilder" useFile
+"instruction" useFile
+
+LLVMModule: [
+  {
+    name:;
+    sourceFile: name;
+    dataLayout: DataLayout;
+    typeAliases: HashTable;
+    globals: HashTable;
+    anonymousGlobals: Array;
+    functions: HashTable;
+    sortedFunctions: Array;
+    anonymousFunctions: Array;
+
+    insertTypeAlias: [name: swap dup; swap val: AliasType; name val typeAliases.insert val] func;
+    insertTypeAlias: [drop typeAliases.find] [AlreadyExist] pfunc;
+
+    insertOpaqueAlias: [OpaqueType dup typeAliases.insert] func;
+    insertOpaqueAlias: [typeAliases.find] [AlreadyExist] pfunc;
+
+    getAlias: [typeAliases @] func;
+
+    getOrInsertGlobalVariable: [name: swap dup; swap val: GlobalVariable; name val globals.insert val] func;
+    getOrInsertGlobalVariable: [drop globals.find] [AlreadyExist] pfunc;
+
+    insertGlobalConstant: [name:type:value:;;; val: name type value GlobalConstant; name val globals.insert val] func;
+    insertGlobalConstant: [drop drop globals.find] [AlreadyExist] pfunc;
+
+    insertAnonymousConstant: [type:value:;; val: "" type value GlobalConstant; val anonymousGlobals.pushBack val] func;
+    insertAnonymousVariable: [val: "" swap GlobalVariable; val anonymousGlobals.pushBack val] func;
+
+    getGlobal: [globals @] func;
+
+    getOrInsertFunctionDeclaration: [
+      name:retType:inputTypes:;;;
+      f: name retType inputTypes FunctionDeclaration;
+      list: ( f ) makeList;
+      name list functions.insert
+      list sortedFunctions.pushBack
+      f
+    ] func;
+
+    getOrInsertFunctionDeclaration: [drop drop functions.find] [
+      name:retType:inputTypes:;;;
+      list: name functions @;
+      result: ();
+      list [
+        func:;
+        func.type.inputTypes inputTypes compBuiltinList
+        [func !result FALSE] [TRUE] if
+      ] enum
+
+      result () same
+      [
+        f: name retType inputTypes FunctionDeclaration;
+        f list.pushBack
+        name list functions.insert
+        list sortedFunctions.pushBack
+        f
+      ] [result] if
+    ] pfunc;
+
+    insertAnonymousFunction: [
+      retType:inputValues:;;
+      f: "" retType inputValues Function;
+      f anonymousFunctions.pushBack
+      f
+    ] func;
+
+    getOrInsertFunction: [
+      name:retType:inputValues:;;;
+      f: name retType inputValues Function;
+      list: ( f ) makeList;
+      name list functions.insert
+      list sortedFunctions.pushBack
+      f
+    ] func;
+
+    getOrInsertFunction: [drop drop functions.find] [
+      name:retType:inputValues:;;;
+      list: name functions @;
+      result: FALSE;
+      list [
+        func:;
+        func.type.inputTypes inputValues compBuiltinList
+        [func !result FALSE] [TRUE] if
+      ] enum
+
+      result FALSE same
+      [
+        f: name retType inputValues Function;
+        f list.pushBack
+        name list functions.insert
+        list sortedFunctions.pushBack
+        f
+      ] [result] if
+    ] pfunc;
+
+    generateNames: [
+      lastFreeName: 0;
+      getLastName: [@lastFreeName @lastFreeName 1 + !lastFreeName] func;
+
+      anonymousGlobals [.genName] each
+      anonymousFunctions [.genName] each
+    ] func;
+
+    getIR: [
+      generateNames
+
+      "; ModuleID = '" name "'" LF & & &
+      "source_filename = \"" sourceFile "\"" LF & & & &
+      dataLayout.getDataLayoutIR &
+      dataLayout.getTripleIR &
+      LF &
+      IRCode:;
+      typeAliases [.value.getDefIR IRCode swap & !IRCode] each
+      IRCode LF & !IRCode
+      anonymousGlobals [.getIR IRCode swap & !IRCode] each
+      IRCode LF & !IRCode
+      globals [.value.getIR IRCode swap & !IRCode] each
+      IRCode LF & !IRCode
+      anonymousFunctions [.getIR IRCode swap & !IRCode] each
+      IRCode LF & !IRCode
+      sortedFunctions [[.getIR IRCode swap & !IRCode]  each] each
+      IRCode
+    ] func;
+  }
+] func;

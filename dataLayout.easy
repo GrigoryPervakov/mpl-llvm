@@ -1,0 +1,256 @@
+ArchType: {
+  UnknownArch:"unknown";
+
+  aarch64: "aarch64";
+  aarch64_be: "aarch64_be";
+  arm: "arm";
+  armeb: "armeb";
+  arc: "arc";
+  avr: "avr";
+  bpfel: "bpfel";
+  bpfeb: "bpfeb";
+  hexagon: "hexagon";
+  mips: "mips";
+  mipsel: "mipsel";
+  mips64: "mips64";
+  mips64el: "mips64el";
+  msp430: "msp430";
+  nios2: "nios2";
+  ppc64: "powerpc64";
+  ppc64le: "powerpc64le";
+  ppc: "powerpc";
+  r600: "r600";
+  amdgcn: "amdgcn";
+  riscv32: "riscv32";
+  riscv64: "riscv64";
+  sparc: "sparc";
+  sparcv9: "sparcv9";
+  sparcel: "sparcel";
+  systemz: "s390x";
+  tce: "tce";
+  tcele: "tcele";
+  thumb: "thumb";
+  thumbeb: "thumbeb";
+  x86: "i386";
+  x86_64: "x86_64";
+  xcore: "xcore";
+  nvptx: "nvptx";
+  nvptx64: "nvptx64";
+  le32: "le32";
+  le64: "le64";
+  amdil: "amdil";
+  amdil64: "amdil64";
+  hsail: "hsail";
+  hsail64: "hsail64";
+  spir: "spir";
+  spir64: "spir64";
+  kalimba: "kalimba";
+  lanai: "lanai";
+  shave: "shave";
+  wasm32: "wasm32";
+  wasm64: "wasm64";
+  renderscript32: "renderscript32";
+  renderscript64: "renderscript64";
+};
+
+VendorType: {
+  UnknownVendor: "unknown";
+
+  Apple: "apple";
+  PC: "pc";
+  SCEI: "scei";
+  BGP: "bgp";
+  BGQ: "bgq";
+  Freescale: "fsl";
+  IBM: "ibm";
+  ImaginationTechnologies: "img";
+  MipsTechnologies: "mti";
+  NVIDIA: "nvidia";
+  CSR: "csr";
+  Myriad: "myriad";
+  AMD: "amd";
+  Mesa: "mesa";
+  SUSE: "suse";
+};
+
+OSType: {
+  UnknownOS: "unknown";
+
+  Ananas: "ananas";
+  CloudABI: "cloudabi";
+  Darwin: "darwin";
+  DragonFly: "dragonfly";
+  FreeBSD: "freebsd";
+  Fuchsia: "fuchsia";
+  IOS: "ios";
+  KFreeBSD: "kfreebsd";
+  Linux: "linux";
+  Lv2: "lv2";
+  MacOSX: "macosx";
+  NetBSD: "netbsd";
+  OpenBSD: "openbsd";
+  Solaris: "solaris";
+  Win32: "windows";
+  Haiku: "haiku";
+  Minix: "minix";
+  RTEMS: "rtems";
+  NaCl: "nacl";
+  CNK: "cnk";
+  AIX: "aix";
+  CUDA: "cuda";
+  NVCL: "nvcl";
+  AMDHSA: "amdhsa";
+  PS4: "ps4";
+  ELFIAMCU: "elfiamcu";
+  TvOS: "tvos";
+  WatchOS: "watchos";
+  Mesa3D: "mesa3d";
+  Contiki: "contiki";
+};
+
+EnvironmentType: {
+  UnknownEnvironment: "unknown";
+
+  GNU: "gnu";
+  GNUABIN32: "gnuabin32";
+  GNUABI64: "gnuabi64";
+  GNUEABIHF: "gnueabihf";
+  GNUEABI: "gnueabi";
+  GNUX32: "gnux32";
+  CODE16: "code16";
+  EABI: "eabi";
+  EABIHF: "eabihf";
+  Android: "android";
+  Musl: "musl";
+  MuslEABI: "musleabi";
+  MuslEABIHF: "musleabihf";
+  MSVC: "msvc";
+  Itanium: "itanium";
+  Cygnus: "cygnus";
+  AMDOpenCL: "amdopencl";
+  CoreCLR: "coreclr";
+  OpenCL: "opencl";
+};
+
+Endian: {
+  Little: "e";
+  Big: "E";
+};
+
+Mangling: {
+  None: "";
+  Elf: "m:e-";
+  Mips: "m:m-";
+  MachO: "m:o-";
+  Win: "m:w-";
+  Winx86: "m:x-";
+};
+
+Alignment: {
+  Integer: [
+    size:abi:;;
+    "i" size toText &
+    ":" abi toText & &
+    "-" &
+  ] func;
+
+  Natural: [
+    size:abi:;;
+    "n" size toText &
+    ":" abi toText & &
+    "-" &
+  ] func;
+
+  Float: [
+    size:abi:;;
+    "f" size toText &
+    ":" abi toText & &
+    "-" &
+  ] func;
+
+  Pointer: [
+    size:abi:;;
+    "p:" size toText &
+    ":" abi toText & &
+    "-" &
+  ] func;
+
+  Aggregate: [
+    size:abi:;;
+    "a:" size toText &
+    ":" abi toText & &
+    "-" &  
+] func;
+  
+};
+
+AlignmentPrefer: {
+  Integer: [
+    size:abi:prefer:;;;
+    "i" size toText &
+    ":" abi toText & &
+    ":" prefer toText & &
+    "-" &
+  ] func;
+
+  Natural: [
+    size:abi:prefer:;;;
+    "n" size toText &
+    ":" abi toText & &
+    ":" prefer toText & &
+    "-" &
+  ] func;
+
+  Float: [
+    size:abi:prefer:;;;
+    "f" size toText &
+    ":" abi toText & &
+    ":" prefer toText & &
+    "-" &
+  ] func;
+
+  Pointer: [
+    size:abi:prefer:;;;
+    "p:" size toText &
+    ":" abi toText & &
+    ":" prefer toText & &
+    "-" &
+  ] func;
+
+  Aggregate: [
+    size:abi:prefer:;;;
+    "a:" size toText &
+    ":" abi toText &
+    ":" prefer toText &
+    "-" &
+  ] func;
+  
+};
+
+DataLayout: [
+  {
+    arch: ArchType.UnknownArch;
+    vendor: VendorType.UnknownVendor;
+    ostype: OSType.UnknownOS;
+    environment: EnvironmentType.UnknownEnvironment;
+
+    endian: Endian.Big;
+    mangling: Mangling.None;
+    alignments: List;
+    stack: 0;
+
+    getDataLayoutIR: [
+      "target datalayout = \"" endian "-" mangling & & &
+      IRCode:;
+      alignments [IRCode swap & !IRCode TRUE] enum
+      IRCode "S" stack toText & &
+      "\"" LF & &
+    ] func;
+
+    getTripleIR: ["target triple = \"" arch "-" vendor "-" ostype "-" environment "\"" LF & & & & & & & & &] func;
+    getTripleIR: [environment EnvironmentType.UnknownEnvironment =] ["target triple = \"" arch "-" vendor "-" ostype "\"" LF & & & & & & &] pfunc;
+
+    appendAlign: [alignments.pushBack] func;
+
+  }
+] func;

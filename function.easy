@@ -1,0 +1,123 @@
+"sl/algorithm" useFile
+"sl/linkedList" useFile
+"sl/array" useFile
+
+Function: [
+  inputTypes:;
+  {
+    FUNCTION: ();
+
+    name:retType:;;
+
+    inputValues: inputTypes copy makeArray ["" Value] map ;
+    type: retType inputTypes FunctionType;
+    basicBlocks: List;
+    exported: FALSE;
+
+    appendArgument: ["" Value dup inputValues.pushBack] func;
+    appendBasicBlock: [val: BasicBlock; val basicBlocks.pushBack val] func;
+
+    tempName: 0;
+    genName: [] func;
+    genName: [name "" =] [getLastName toText !tempName] pfunc;
+
+    getName: [name] func;
+    getName: [name "" =] [tempName] pfunc;
+
+    getNameIR: [retType.getIR " @" getName & &] func;
+    getNameIR: [inputValues.last "VARARG" has] [type.getIR " @" getName & &] pfunc;
+
+    genOffset: [textMemorySize 0 cast 1 + 51 swap - result: ""; [result " " & !result] times result] func;
+
+    generateNames: [
+      lastFreeName: 0;
+      getLastName: [@lastFreeName @lastFreeName 1 + !lastFreeName] func;
+      basicBlocks [
+        block:; block.genName
+        block.instructions [instruction:; instruction "return" has [instruction.return.genName] when TRUE] enum
+        block.terminator "return" has [block.terminator.return.genName] when
+        TRUE 
+      ] enum
+    ] func;
+
+    getIR: [
+      generateNames
+      "define " exported ~ ["internal " &] when retType.getIR " @" getName & & &
+      "(" inputValues [.getDefIR] getListIR ")" & & &
+      " {" &
+
+      IRCode:;
+      basicBlocks [
+        block:;
+        IRCode LF &
+        block.getDeclIR &
+        preds: ();
+        basicBlocks [label:; label block.isJumpHere [preds label , drop] when TRUE] enum
+        preds fieldCount 0 > [block.getDeclIR genOffset "; preds = " & preds [.getNameIR] getListIR & &] when
+        LF &
+        block.getIR &
+        !IRCode
+        TRUE
+      ] enum
+      IRCode "}" LF LF & & &
+    ] func;
+
+    getIR: [result: FALSE; [.name "" = result or !result TRUE] inputValues enum result] [AllArgumentNamesMustBeNonEmpty] pfunc;
+  }
+] func;
+
+BasicBlock: [
+  {
+    BASIC_BLOCK: ();
+
+    name: "";
+    tempName: 0;
+    instructions: List;
+    terminator: [NonTerminated] func;
+
+    genName: [] func;
+    genName: [name "" =] [getLastName toText !tempName] pfunc;
+
+    getName: [name] func;
+    getName: [name "" =] [tempName] pfunc;
+
+    getDeclIR: [name copy ":" &] func;
+    getDeclIR: [name "" =] ["; <label>:" tempName copy ":" & &] pfunc;
+
+    getNameIR: ["%" getName &] func;
+    getDefIR: ["label %" getName &] func;
+
+    getIR: [
+      IRCode: "";
+      instructions [.getIR IRCode swap & !IRCode TRUE] enum
+      IRCode terminator.getIR &
+    ] func;
+
+    isJumpHere: [drop FALSE] func;
+    isJumpHere: [.terminator "INDIRECT_BRANCH" has] [terminator: .terminator; @self terminator.labels checkInList] pfunc;
+    isJumpHere: [.terminator "SWITCH" has] [terminator: .terminator; terminator.default @self is @self terminator.branches checkInList or] pfunc;
+    isJumpHere: [.terminator "INVOKE" has] [terminator: .terminator; terminator.normal @self is terminator.exception @self is or] pfunc;
+    isJumpHere: [.terminator "BRANCH_COND" has] [terminator: .terminator; terminator.iftrue @self is terminator.iffalse @self is or] pfunc;
+    isJumpHere: [.terminator "BRANCH_UNCOND" has] [terminator: .terminator; terminator.val @self is] pfunc;
+  }
+] func;
+
+FunctionDeclaration: [
+  {
+    FUNCTION_DECLARATION: ();
+
+    name:retType:inputTypes: makeArray;;;
+    type: retType inputTypes FunctionType;
+
+    getNameIR: [retType.getIR " @" name & &] func;
+    getNameIR: [VarargType.getIR inputTypes.last .getIR =] [type.getIR " @" name & &] pfunc;
+
+    getDefIR: [type PointerType .getIR] func;
+
+    getIR: [
+      "declare " retType.getIR " @" name & & &
+      "(" inputTypes [.getIR] getListIR ")" & & &
+      LF LF & &
+    ] func;
+  }
+] func;

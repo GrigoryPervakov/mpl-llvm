@@ -1,0 +1,26 @@
+getListIR': [
+  list:getIR:index:;;;
+  ", " index list @ getIR call &
+  list getIR index 1 + getListIR' &
+] func;
+getListIR': [0 =] [
+  list:getIR:index:;;;
+  index list @ getIR call
+  list getIR index 1 + getListIR' &
+] pfunc;
+getListIR': [swap drop swap fieldCount =] [drop drop drop ""] pfunc;
+
+getListIR: [0 getListIR'] func;
+
+compBuiltinList': [drop drop drop FALSE] func;
+compBuiltinList': [a:b:index:;;; index a @ index b @ =] [1 + compBuiltinList'] pfunc;
+compBuiltinList': [index:; fieldCount index =] [drop drop drop TRUE] pfunc;
+
+compBuiltinList: [drop drop FALSE] func;
+compBuiltinList: [a:b:;; a fieldCount b fieldCount =] [0 compBuiltinList'] pfunc;
+
+checkInList': [1 + checkInList'] func;
+checkInList': [swap @ is] [drop drop drop TRUE] pfunc;
+checkInList': [swap fieldCount =] [drop drop drop FALSE] pfunc;
+
+checkInList: [0 checkInList'] func;

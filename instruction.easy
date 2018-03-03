@@ -1,0 +1,420 @@
+AcllocateStack: [
+  {
+    type:count:;;
+    align: -1;
+    return: type PointerType "" Value;
+    return
+
+    getAlign: [", align " align toText &] func;
+    getAlign: [align -1 =] [""] pfunc;
+
+    getCount: [ ", " count.getDefIR &] func;
+    getCount: [count.value 1 =] [""] pfunc;
+
+    getIR: [
+      "  " return.getNameIR &
+      " = alloca " type.getIR & &
+      getCount &
+      getAlign &
+      LF &
+    ] func;
+  }
+] func;
+
+Load: [
+  {
+    path:;
+    type: path.type.type;
+    align: -1;
+    return: path.type.type "" Value;
+    return
+
+    getAlign: [", align " align toText &] func;
+    getAlign: [align -1 =] [""] pfunc;
+
+    getIR: [
+      "  " return.getNameIR " = load " & &
+      type.getIR ", " path.getDefIR LF & & & &
+      getAlign &
+    ] func;
+  }
+] func;
+
+Store: [
+  {
+    val:path:;;
+    align: -1;
+
+    getAlign: [", align " align toText &] func;
+    getAlign: [align -1 =] [""] pfunc;
+
+    getIR: [
+      "  store " path.getDefIR ", " & &
+      val.getDefIR LF & &
+      getAlign &
+    ] func;
+  }
+] func;
+
+GetElementPointer: [
+
+  unhead: [list:; list.popFront list] func;
+
+  calculateReturnType: [InvalidTypeForCalc] func;
+  calculateReturnType: [drop "STRUCT" has] [type:indicies:;; indicies.first.value type.typeList @ indicies unhead calculateReturnType] pfunc;
+  calculateReturnType: [.first.type.getIR "i32" = ~ swap "STRUCT" has and] [InvalidIndexForStruct] pfunc;
+  calculateReturnType: [drop "ARRAY" has] [type:indicies:;;  type.type indicies unhead calculateReturnType] pfunc;
+  calculateReturnType: [drop "POINTER" has] [swap .type swap unhead calculateReturnType] pfunc;
+  calculateReturnType: [drop "ALIAS" has] [swap .type swap calculateReturnType] pfunc;
+  calculateReturnType: [.empty] [drop PointerType] pfunc;
+
+  {
+    val:indicies: makeList;;
+    return: val.type indicies copy calculateReturnType "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR " = getelementptr "  & &
+      val.type.type.getIR ", " val.getDefIR & & &
+      IRCode:;
+      indicies [.getDefIR ", " swap & IRCode swap & !IRCode TRUE] enum
+      IRCode LF &
+    ] func;
+  }
+] func;
+
+Return: [
+  {
+    val:;
+    getIR: ["  ret " val.getDefIR LF & &] func;
+  }
+] func;
+
+BranchUncond: [
+  {
+    BRANCH_UNCOND: {};
+    val:;
+    getIR: ["  br " val.getDefIR LF & &] func;
+  }
+] func;
+
+BranchCond: [
+  {
+    BRANCH_COND: {};
+    cond:iftrue:iffalse:;;;
+
+    getIR: [
+      "  br " cond.getDefIR &
+      ", " iftrue.getDefIR & &
+      ", " iffalse.getDefIR LF & & &
+    ] func;
+  }
+] func;
+
+PhiNode: [
+  {
+    PHI_NODE: {};
+    type:nodes:;;
+
+    return: type "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR " = phi " & &
+      type.getIR nodes [
+        n:;
+        " [" 0 n @ .getNameIR ", " 1 n @ .getNameIR "]" & & & & 
+      ] map 
+      [a:b:;; a "," b & &] reduce LF & & &
+    ] func;
+
+  }
+] func;
+
+Switch: [
+  {
+    SWITCH: {};
+    val:default:branches:;;;
+    getIR: [
+      "  switch " val.getDefIR &
+      ", " default.getDefIR & &
+      " [ "
+      IRCode:;
+      i: 0;
+      count: branches fieldCount;
+      [i count <] [
+        data: i branches @;
+        IRcode
+        0 data @ .getDefIR
+        1 data @ .getDefIR & & !IRCode
+        i 1 + !i
+        i count <
+        [" " & IRCode swap & !IRCode]
+        [" ]" & IRCode swap & !IRCode] if
+      ] while
+      IRCode LF &
+    ] func;
+  }
+];
+
+IndirectBranch: [
+  {
+    INDIRECT_BRANCH: {};
+    adress:labels:;;
+    getIR: [
+      "  indirectbr " adress.getDefIR &
+      ", [ " &
+      labels [.getDefIR] getListIR " ]" & &
+      LF &
+    ] func;
+  }
+] func;
+
+Invoke: [
+  {
+    INVOKE: {};
+    function:args:normal:exception:;;;;
+    return: function.retType "" Value;
+    return
+
+    getIR: [
+      " " return.getNameIR " = invoke " & &
+      function.getNameIR "(" & &
+      args [.getDefIR] getListIR ")" & &
+      " to " normal.getDefIR & &
+      " unwind " exception.getDefIR & &
+      LF &
+    ] func;
+  }
+] func;
+
+Unwind: [
+  {
+    getIR: ["  unwind" LF &] func;
+  }
+] func;
+
+Unreachable: [
+  {
+    getIR: ["  unreachable" LF &] func;
+  }
+] func;
+
+BinaryOperation: [
+  {
+    operation:;
+    left:right:;;
+    return: left.type "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR &
+      " = " operation " " & & &
+      left.type.getIR &
+      " " left.getNameIR & &
+      ", " right.getNameIR & &
+      LF &
+    ] func;
+  }
+] func;
+
+BinaryOperation: [
+  drop left:right:.type;.type;
+  left.size right.size = 
+  [left "INTEGER" has right "INTEGER" has and left "FLOAT" has right "FLOAT" has and or] && ~
+] [
+  drop left:right:.type;.type;
+  left print LF print
+  right print Lf print
+
+  InvalidType
+] pfunc;
+
+ConversionOperation: [
+  {
+    operation:;
+    val:type:;;
+    return: type "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR &
+      " = " operation " " & & &
+      val.getDefIR &
+      " to " type.getIR & &
+      LF &
+    ] func;
+  }
+] func;
+
+ExtractValue: [
+
+  unhead: [list:; list.popFront list] func;
+
+  calculateReturnType: [InvalidTypeForExtract] func;
+  calculateReturnType: [drop "STRUCT" has] [type:indicies:;; indicies.first type.typeList @ indicies unhead calculateReturnType] pfunc;
+  calculateReturnType: [drop "ALIAS" has] [swap .type swap calculateReturnType] pfunc;
+  calculateReturnType: [drop "ARRAY" has] [type:indicies:;;  type.type indicies unhead calculateReturnType] pfunc;
+  calculateReturnType: [.empty] [drop] pfunc;
+  {
+    val:indicies: makeList;;
+    return: val.type indidicies copy calculateReturnType "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR " = extractvalue " & &
+      val.getDefIR &
+      IRCode:;
+      [toText IRCode ", " & swap & drop TRUE] indicies enum
+      LF &
+    ] func;
+  }
+] func;
+
+InsertValue: [
+  {
+    val:data:indicies: makeList;;;
+    return: val.type "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR " = insertvalue " & &
+      val.getDefIR ", " data.getDefIR & & &
+      IRCode:;
+      [toText IRCode ", " & swap & !IRCode TRUE] indicies enum
+      LF &
+    ] func;
+  }
+] func;
+
+ReturningCall: [
+  {
+    function:args:;;
+    return: function.retType "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR " = call " & &
+      function.getNameIR "(" & &
+      args [.getDefIR] getListIR ")" & &
+      LF &
+    ] func;
+
+  }
+] func;
+
+VoidCall: [
+  {
+    function:args:;;
+
+    getIR: [
+      "  call "
+      function.getNameIR "(" & &
+      args [.getDefIR] getListIR ")" & &
+      LF &
+    ] func;
+
+    Constants.void
+  }
+] func;
+
+PointerCall: [
+  {
+    function:args:;;
+    return: function.type.type.retType VoidType same
+      [()] [function.type.type.retType "" Value dup] if;
+
+    getIR: [
+     "  call "
+      function.getNameIR "(" & &
+      args [.getDefIR] getListIR ")" & &
+      LF &
+    ] func;
+    getIR: [return "VALUE" has] [
+      "  " return.getNameIR " = call " & &
+      return.type.getIR " " & &
+      function.getNameIR "(" & &
+      args [.getDefIR] getListIR ")" & &
+      LF &
+    ] pfunc;
+  }
+] func;
+
+IntegerCompareCondition: {
+  Equal: "eq";
+  NotEqual: "ne";
+
+  UnsignedGreaterThan: "ugt";
+  UnsignedGreaterOrEqual: "uge";
+  UnsignedLessThan: "ult";
+  UnsignedLessOrEqual: "ule";
+
+  SignedGreaterThan: "sgt";
+  SignedGreaterOrEqual: "sge";
+  SignedLessThan: "slt";
+  SignedLessOrEqual: "sle";
+};
+
+IntegerCompare: [
+  {
+    condition:left:right:;;;
+    return: 1 IntegerType "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR &
+      " = icmp " condition " " & & &
+      left.getDefIR ", " right.getNameIR & & &
+      LF &
+    ] func;
+  }
+] func;
+
+FloatCompareCondition: {
+  False: "false";
+  True: "true";
+
+  Ordered: "ord";
+  OrderedAndEqual: "oeq";
+  OrderedAndNotEqual: "one";
+  OrderedAndGreaterThan: "ogt";
+  OrderedAndGreaterOrEqual: "oge";
+  OrderedAndLessThan: "olt";
+  OrderedAndLessOrEqual: "ole";
+
+  Unordered: "uno";
+  UnorderedOrEqual: "ueq";
+  UnorderedOrNotEqual: "une";
+  UnorderedOrGreaterThan: "ugt";
+  UnorderedOrGreaterOrEqual: "uge";
+  UnorderedOrLessThan: "ult";
+  UnorderedOrLessOrEqual: "ule";
+};
+
+FloatCompare: [
+  {
+    condition:left:right:;;;
+    return: 1 IntegerType "" Value;
+    return
+
+    getIR: [
+      "  " return.getNameIR &
+      " = fcmp " condition " " & & &
+      left.getDefIR ", " right.getNameIR & & &
+      LF &
+    ] func;
+  }
+] func;
+
+Select: [
+  {
+    cond:left:right:;;;
+    return: left.type "" Value;
+
+    getIR: [
+      "  " return.getNameIR " = select " & &
+      cond.getDefIR ", " left.getDefIR ", " right.getDefIR & & & & &
+      LF &
+    ] func;
+  }
+] func;

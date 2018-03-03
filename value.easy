@@ -1,0 +1,140 @@
+Value: [{
+    VALUE: {};
+    name:;
+    type:;
+    tempName: 0;
+
+    genName: [] func;
+    genName: [name "" =] [getLastName toText !tempName] pfunc;
+
+    getDefIR: [type.getIR  " " getNameIR & &] func;
+
+    getNameIR: ["%" name &] func;
+    getNameIR: [name "" =] ["%" tempName &] pfunc;
+  }
+] func;
+
+Value: [drop .getIR VarargType.getIR =] [
+  drop
+  {
+    VARARG: {};
+    type:;
+    name: "0";
+    genName: [] func;
+    getDefIR: ["..."] func;
+  }
+] pfunc;
+
+Constants: {
+  void: { CONSTANT: {}; getDefIR: "void"; };
+  true: { CONSTANT: {}; getDefIR: "i1 true"; getNameIR: "true";};
+  false: { CONSTANT: {}; getDefIR: "i1 false"; getNameIR: "false";};
+  null: {
+    CONSTANT: {};
+    getDefIR: [.getIR " null" &] func;
+    getNameIR: "null";};
+};
+
+Constant: [
+  {
+    CONSTANT: {};
+    value:type:;;
+
+    valueToText: [
+      type "FLOAT" has [
+        hexDigits: ("0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "A" "B" "C" "D" "E" "F") makeArray;
+
+        mem: 8nx allocateMemory;
+        value 0.0 cast mem writeMemory
+
+        "0x"
+        8 [
+          d: 0n8 mem 7 i - 0nx cast + readMemory;
+          d 0 cast 4 rshift hexDigits.at &
+          d 0 cast 15 and hexDigits.at &
+        ] times
+
+        mem freeMemory
+      ] [
+        value toText
+      ] if
+    ] func;
+
+    getDefIR: [type.getIR " " valueToText & &] func;
+    getNameIR: [valueToText] func;
+  }
+] func;
+
+GlobalConstant: [
+  {
+    CONSTANT: {};
+    name:type:value:; PointerType;;
+    align: -1;
+
+    tempName: 0;
+    genName: [] func;
+    genName: [name "" =] [getLastName toText !tempName] pfunc;
+
+    getName: [name] func;
+    getName: [name "" =] [tempName] pfunc;
+
+    getValueIR: [value toText] func;
+    getValueIR: [drop "STRUCT" have] ["[" value [.getIR] getListIR "]" & &] pfunc;
+    getValueIR: [drop "ARRAY" have] ["{" value [.getIR] getListIR " }" & &] pfunc;
+    getValueIR: ["" & TRUE] [
+      hexTable: ("0" "1" "2" "3" "4" "5" "6" "7" "8" "9" "A" "B" "C" "D" "E" "F");
+      toHex: [hexTable @] func;
+
+      "c\""
+      value textMemorySize 0 cast [
+        address: value textMemoryPointer i 0nx cast +;
+        code: 0n8 address readMemory;
+        code 32n8 < ~ code 128n8 < and code 34n8 = ~ and code 92n8 = ~ and 
+        [address 1 memoryToText &]
+        ["\\" & code 16n8 / toHex & code 16n8 mod toHex &]
+        if
+      ] times
+      "\"" &
+    ] pfunc;
+
+    getIR: ["@" getName & " = constant " & type.type.getIR " " & & getValueIR & ", align" align toText & & LF &] func;
+    getIR: [align -1 =] ["@" getName & " = constant " & type.type.getIR " " & & getValueIR & LF &] pfunc;
+
+    getDefIR: [type.getIR " @" getName & &] func;
+    getNameIR: ["@" getName &] func;
+  }
+] func;
+
+GlobalVariable: [
+  {
+    Value: {};
+    name:type: PointerType;;
+    default: "zeroinitializer";
+    align: -1;
+    
+    tempName: 0;
+    genName: [] func;
+    genName: [name "" =] [getLastName toText !tempName] pfunc;
+
+    getName: [name] func;
+    getName: [name "" =] [tempName] pfunc;
+
+    getIR: ["@" getName & " = global " & type.type.getIR " " default & & & ", align" align toText & & LF &] func;
+    getIR: [align -1 =] ["@" getName & " = global " & type.type.getIR " " default & & & LF &] pfunc;
+
+    getDefIR: [type.getIR " @" getName & &] func;
+    getNameIR: ["@" getName &] func;
+  }
+] func;
+
+FunctionPointer: [{
+    VALUE: {};
+    function:;
+    name: [function.getName] func;
+    type: [function.type PointerType] func;
+
+    getDefIR: [type.getIR  " " getNameIR & &] func;
+
+    getNameIR: ["@" name &] func;
+    getNameIR: [name "" =] ["@" tempName &] pfunc;
+}] func;
